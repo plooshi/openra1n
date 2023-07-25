@@ -28,7 +28,11 @@
 #define LOG_DEBUG(str, ...) _log_base(str, _color_debug, "Debug", ##__VA_ARGS__)
 #define LOG_ERROR(str, ...) _log_base(str, _color_error, "Error", ##__VA_ARGS__)
 #define LOG_INFO(str, ...) _log_base(str, _color_info, "Info", ##__VA_ARGS__)
-#define log_WARN(str, ...) _log_base(str, _color_warn, "Warn", ##__VA_ARGS__)
+#define LOG_WARN(str, ...) _log_base(str, _color_warn, "Warn", ##__VA_ARGS__)
+#define log_debug LOG_DEBUG
+#define log_error LOG_ERROR
+#define log_info LOG_INFO
+#define log_warn LOG_WARN
 
 // log_rainbow: just print out the message with every character a different color
 #define LOG_RAINBOW(fmt, ...) do { \
