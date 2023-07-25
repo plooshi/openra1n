@@ -860,7 +860,7 @@ checkm8_stage_patch(const usb_handle_t *handle) {
 	uint8_t *data;
 	transfer_ret_t transfer_ret;
 	bool ret = false;
-	void* blank[DFU_MAX_TRANSFER_SZ];
+	char blank[DFU_MAX_TRANSFER_SZ];
 	memset(&blank, '\0', DFU_MAX_TRANSFER_SZ);
 	uint64_t* p = (uint64_t*)blank;
     p[5] = insecure_memory_base;
@@ -932,7 +932,7 @@ checkm8_stage_patch(const usb_handle_t *handle) {
 		return false;
 	}
 	for(i = 0; i < 2; i++) {
-		LOG_DEBUG("i = %zu", i);
+		//LOG_DEBUG("i = %zu", i);
 		send_usb_control_request_no_data(handle, 2, 3, 0, 0x80, 0, NULL);
 	}
 	if(p != NULL && send_usb_control_request(handle, 0x00, 0, 0, 0x00, p, 0x30, &transfer_ret) && transfer_ret.ret == USB_TRANSFER_STALL) {
@@ -959,10 +959,10 @@ static void compress_pongo(void *out, size_t *out_len) {
 static void checkm8_boot_pongo(usb_handle_t *handle) {
 	transfer_ret_t transfer_ret;
 	LOG_INFO("Booting pongoOS");
-	LOG_DEBUG("Compressing pongoOS");
 	LOG_DEBUG("Appending shellcode to the top of pongoOS (512 bytes)");
 	void *shellcode = malloc(512);
 	memcpy(shellcode, payloads_shellcode_bin, payloads_shellcode_bin_len);
+	LOG_DEBUG("Compressing pongoOS");
 	size_t out_len = payloads_Pongo_bin_len;
 	void *out = malloc(out_len);
 	compress_pongo(out, &out_len);
@@ -976,9 +976,9 @@ static void checkm8_boot_pongo(usb_handle_t *handle) {
 	free(shellcode);
 	LOG_DEBUG("Setting the compressed size into the shellcode");
 	uint32_t* size = (uint32_t*)(out + 0x1fc);
-	LOG_DEBUG("size = 0x%" PRIX32 "", *size);
+	//LOG_DEBUG("size = 0x%" PRIX32 "", *size);
 	*size = out_len - 512;
-	LOG_DEBUG("size = 0x%" PRIX32 "", *size);
+	//LOG_DEBUG("size = 0x%" PRIX32 "", *size);
 	LOG_DEBUG("Reconnecting to device");
 	init_usb_handle(handle, APPLE_VID, DFU_MODE_PID);
 	LOG_DEBUG("Waiting for device to be ready");
@@ -986,11 +986,12 @@ static void checkm8_boot_pongo(usb_handle_t *handle) {
 	{
         size_t len = 0;
         size_t size;
+		char *char_out = (unsigned char *) out;
         while(len < out_len)
         {
         retry:
             size = ((out_len - len) > 0x800) ? 0x800 : (out_len - len);
-            send_usb_control_request(handle, 0x21, DFU_DNLOAD, 0, 0, (unsigned char*)&out[len], size, &transfer_ret);
+            send_usb_control_request(handle, 0x21, DFU_DNLOAD, 0, 0, char_out + len, size, &transfer_ret);
             if(transfer_ret.sz != size || transfer_ret.ret != USB_TRANSFER_OK)
             {
 				LOG_DEBUG("retrying at len = %zu", len);
@@ -998,15 +999,15 @@ static void checkm8_boot_pongo(usb_handle_t *handle) {
                 goto retry;
             }
             len += size;
-			LOG_DEBUG("len = %zu", len);
         }
+		LOG_DEBUG("Sent pongoOS (%zu bytes)", len);
 	}
 	send_usb_control_request_no_data(handle, 0x21, 4, 0, 0, 0, NULL);
 	LOG_DEBUG("pongoOS sent, should be booting");
 }
 
 static bool
-gaster_checkm8(usb_handle_t *handle) {
+openra1n_checkm8(usb_handle_t *handle) {
 	enum {
 		STAGE_RESET,
 		STAGE_SETUP,
@@ -1049,14 +1050,12 @@ gaster_checkm8(usb_handle_t *handle) {
 	return stage == STAGE_PWNED;
 }
 
-int main(int argc, char **argv) {
-	LOG_RAINBOW("-=-=- openra1n -=-=-");
-	int ret = EXIT_FAILURE;
+bool openra1n() {
+	bool ret;
 	usb_handle_t handle;
 	usb_timeout = 5;
 	usb_abort_timeout_min = 0;
-	LOG_INFO("Waiting for DFU mode device");
-	gaster_checkm8(&handle);
+	ret = openra1n_checkm8(&handle) ? 0 : 1;
 	sleep_ms(3000);
 	checkm8_boot_pongo(&handle);
 	return ret;

@@ -16,22 +16,19 @@
 #define RAINBOW_COLORS \
     {RED_COLOR, GREEN_COLOR, YELLOW_COLOR, BLUE_COLOR, MAGENTA_COLOR, CYAN_COLOR}
 
-// style: [INFO] (filename:line) --> message
-#define LOG_INFO(fmt, ...) \
-    printf(WHITE_COLOR "[INFO] (%s:%d)" GRAY_COLOR " --> " WHITE_COLOR fmt RESET_COLOR "\n", \
-           __FILE__, __LINE__, ##__VA_ARGS__)
+// style: [INFO] filename:line (function) --> message
+#define _color_error "\033[0;91m"
+#define _color_info "\033[0;92m"
+#define _color_warn "\033[0;93m"
+#define _color_debug "\033[0;94m"
+#define _color_reset "\033[0m"
 
-#define LOG_WARN(fmt, ...) \
-    printf(YELLOW_COLOR "[WARN] (%s:%d)" GRAY_COLOR " --> " WHITE_COLOR fmt RESET_COLOR "\n", \
-           __FILE__, __LINE__, ##__VA_ARGS__)
+#define _log_base(str, color, level, ...) printf(color "[%s] %s:%d (%s) --> " str "\n" _color_reset, level, __FILE__, __LINE__, __func__, ##__VA_ARGS__)
 
-#define LOG_ERROR(fmt, ...) \
-    printf(RED_COLOR "[ERROR] (%s:%d)" GRAY_COLOR " --> " WHITE_COLOR fmt RESET_COLOR "\n", \
-           __FILE__, __LINE__, ##__VA_ARGS__)
-
-#define LOG_DEBUG(fmt, ...) \
-    printf(CYAN_COLOR "[DEBUG] (%s:%d)" GRAY_COLOR " --> " WHITE_COLOR fmt RESET_COLOR "\n", \
-           __FILE__, __LINE__, ##__VA_ARGS__)
+#define LOG_DEBUG(str, ...) _log_base(str, _color_debug, "Debug", ##__VA_ARGS__)
+#define LOG_ERROR(str, ...) _log_base(str, _color_error, "Error", ##__VA_ARGS__)
+#define LOG_INFO(str, ...) _log_base(str, _color_info, "Info", ##__VA_ARGS__)
+#define log_WARN(str, ...) _log_base(str, _color_warn, "Warn", ##__VA_ARGS__)
 
 // log_rainbow: just print out the message with every character a different color
 #define LOG_RAINBOW(fmt, ...) do { \

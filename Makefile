@@ -1,7 +1,8 @@
 CFLAGS = -I./include -Wall -Wno-pointer-sign
 CFLAGS += -Os
-BIN = openra1n
-SOURCE = openra1n.c lz4/lz4.c lz4/lz4hc.c
+BIN = libopenra1n.a
+SOURCE = openra1n.c
+OBJECTS = $(patsubst %.c, %.o, $(SOURCE))
 ifeq ($(LIBUSB),1)
 	CC = gcc
 	CFLAGS += -DHAVE_LIBUSB
@@ -12,9 +13,9 @@ else
 	LDFLAGS += -framework IOKit -framework CoreFoundation
 endif
 
-.PHONY: all clean payloads openra1n
+.PHONY: all clean payloads $(BIN) lz4
 
-all: payloads openra1n
+all: payloads lz4 $(OBJECTS) $(BIN)
 
 payloads:
 	@mkdir -p include/payloads
@@ -23,13 +24,25 @@ payloads:
 		xxd -i $$file > include/$$file.h; \
 	done
 
-openra1n: payloads
-	@echo " CC     $(BIN)"
-	@$(CC) $(CFLAGS) $(SOURCE) $(LDFLAGS) -o $(BIN)
-	strip $(BIN)
+$(BIN): payloads lz4 $(OBJECTS)
+	@echo " AR     $(BIN)"
+	@ar rcs $(BIN) $(OBJECTS)
+
+%.o: %.c
+	@$(CC) -c -I./include $(CFLAGS) $<
+	@echo " CC     $<"
+
+lz4:
+	$(MAKE) -C lz4
 
 clean:
 	@echo " CLEAN  $(BIN)"
 	@rm -f $(BIN)
+	@rm -f $(OBJECTS)
 	@echo " CLEAN  include/payloads"
 	@rm -rf include/payloads
+	$(MAKE) -C lz4 clean
+
+openra1n: $(BIN)
+	@$(CC) $(CFLAGS) $(LDFLAGS) -Iinclude main.c -L. -Llz4 -lopenra1n -llz4 -o openra1n
+	@echo " LD     openra1n"
