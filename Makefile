@@ -15,7 +15,7 @@ endif
 
 .PHONY: all clean payloads $(BIN) lz4
 
-all: payloads lz4 $(OBJECTS) $(BIN)
+all: Pongo.bin payloads lz4 $(OBJECTS) $(BIN)
 
 payloads:
 	@mkdir -p include/payloads
@@ -42,6 +42,10 @@ clean:
 	@echo " CLEAN  include/payloads"
 	@rm -rf include/payloads
 	$(MAKE) -C lz4 clean
+
+Pongo.bin:
+	@echo " DL      Pongo.bin"
+	@wget -qO payloads/Pongo.bin https://cdn.nickchan.lol/palera1n/artifacts/kpf/Pongo.bin
 
 openra1n: $(BIN)
 	@$(CC) $(CFLAGS) $(LDFLAGS) -Iinclude main.c -L. -Llz4 -lopenra1n -llz4 -o openra1n

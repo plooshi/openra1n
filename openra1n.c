@@ -1055,7 +1055,7 @@ bool openra1n() {
 	usb_handle_t handle;
 	usb_timeout = 5;
 	usb_abort_timeout_min = 0;
-	ret = openra1n_checkm8(&handle) ? 0 : 1;
+	ret = openra1n_checkm8(&handle);
 	sleep_ms(3000);
 	checkm8_boot_pongo(&handle);
 	return ret;
