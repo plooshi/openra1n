@@ -8,8 +8,7 @@ ifeq ($(LIBUSB),1)
 	CFLAGS += -DHAVE_LIBUSB
 	LDFLAGS += -lusb-1.0
 else
-	CC = xcrun -sdk macosx gcc
-	CFLAGS += -arch x86_64 -arch arm64
+	CC = xcrun -sdk macosx clang
 	LDFLAGS += -framework IOKit -framework CoreFoundation
 endif
 
