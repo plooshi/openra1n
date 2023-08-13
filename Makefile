@@ -17,7 +17,7 @@ endif
 
 all: Pongo.bin payloads lz4 $(OBJECTS) $(BIN)
 
-payloads:
+payloads: Pongo.bin
 	@mkdir -p include/payloads
 	@for file in payloads/*; do \
 		echo " XXD    $$file"; \
@@ -28,7 +28,7 @@ $(BIN): payloads lz4 $(OBJECTS)
 	@echo " AR     $(BIN)"
 	@ar rcs $(BIN) $(OBJECTS)
 
-%.o: %.c
+%.o: %.c payloads
 	@$(CC) -c -I./include $(CFLAGS) $<
 	@echo " CC     $<"
 
